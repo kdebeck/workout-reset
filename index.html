@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#E8F1EE">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Workout Reset">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Workout Reset</title>
+<style>
+:root{
+  --bg:#f7f5f0;--card:#fffdfa;--ink:#263f44;--muted:#738184;
+  --sage:#a8c7bf;--sage2:#e4efeb;--rose:#f2ded7;--line:#e6dfd6;
+}
+*{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink);background:linear-gradient(#e8f1ee,#f7f5f0 28%)}
+.app{max-width:760px;margin:auto;padding:calc(env(safe-area-inset-top) + 16px) 15px calc(env(safe-area-inset-bottom) + 95px)}
+.hero,.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:18px;margin-bottom:13px;box-shadow:0 7px 22px rgba(45,65,68,.05)}
+.hero{background:rgba(255,255,255,.78);border-radius:29px}
+.kicker,.cap{text-transform:uppercase;letter-spacing:.13em;font-size:11px;font-weight:800;color:var(--muted)}
+h1{font-size:34px;margin:7px 0 5px}.date,.note{color:var(--muted);font-size:13px;line-height:1.45}
+.workoutname{font-size:26px;font-weight:850;margin:10px 0 5px}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+.chip{background:var(--sage2);padding:6px 9px;border-radius:99px;font-size:12px;font-weight:750;color:#526e69}
+.row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.bar{height:9px;background:#e8ece9;border-radius:99px;overflow:hidden;margin-top:12px}.bar div{height:100%;background:var(--sage);width:0}
+.sectiontitle{font-size:18px;font-weight:850}.focus{font-size:23px;font-weight:850;margin:5px 0 10px}
+.timer{font-variant-numeric:tabular-nums;font-size:32px;font-weight:850;text-align:center;margin:8px 0}
+.timerbuttons{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.exercise{padding:13px 0;border-bottom:1px solid #eee8df}.exercise:last-child{border-bottom:0}
+.exhead{display:flex;gap:12px;align-items:center}.pic{width:70px;height:70px;flex:0 0 70px;background:var(--sage2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px}
+.exname{font-weight:800;font-size:16px}.dose{font-size:13px;color:#55716d;font-weight:750;margin-top:3px}.cue{font-size:12px;color:var(--muted);margin-top:4px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.mini,.btn{border:0;border-radius:12px;padding:9px 11px;font-weight:800;background:#edf1ef;color:#526463}.mini{font-size:12px}.mini.done{background:var(--sage2)}
+.btn{width:100%;padding:13px;font-size:15px;margin-top:9px}.primary{background:var(--sage);color:#294540}.rose{background:var(--rose);color:#654943}
+.nav{position:sticky;bottom:9px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:rgba(245,243,238,.94);backdrop-filter:blur(15px);padding:6px;border-radius:19px;box-shadow:0 8px 25px rgba(0,0,0,.08);z-index:9}
+.nav button{border:0;background:none;border-radius:13px;padding:10px 4px;color:var(--muted);font-size:12px;font-weight:800}.nav .active{background:#fff;color:var(--ink)}
+.panel{display:none}.panel.active{display:block}
+.day{padding:13px;border:1px solid var(--line);border-radius:15px;background:#fff;margin:8px 0}.day.today{outline:3px solid var(--sage2)}
+.weightrow{display:flex;gap:8px}.weightrow input,.settings input,.settings select{width:100%;border:1px solid #d9d3ca;border-radius:12px;padding:11px;background:#fff;color:var(--ink)}
+.chart{height:150px;display:flex;align-items:flex-end;gap:5px;padding-top:12px}.point{flex:1;background:var(--sage);border-radius:6px 6px 2px 2px;min-width:6px}
+.toggle{width:48px;height:28px;background:#cfd6d4;border-radius:99px;position:relative;flex:0 0 auto}.toggle:after{content:"";position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}.toggle.on{background:#8db9b2}.toggle.on:after{left:23px}
+.setting{padding:13px 0;border-bottom:1px solid #eee8df}.setting:last-child{border-bottom:0}
+.equip{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.eq{padding:8px 10px;border-radius:12px;background:#eeeae3;font-size:12px;font-weight:750}.eq.on{background:var(--sage2)}
+.hidden{display:none!important}
+.modal{position:fixed;inset:0;background:rgba(30,45,48,.42);z-index:50;display:flex;align-items:flex-end}
+.sheet{background:var(--card);width:100%;max-width:760px;margin:auto;border-radius:25px 25px 0 0;padding:20px 18px calc(env(safe-area-inset-bottom) + 20px)}
+.formpic{height:180px;background:var(--sage2);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:75px;margin:12px 0}
+.formsteps{line-height:1.55;color:#536568;font-size:14px}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="hero">
+  <div class="kicker">30 minutes • today's plan is ready</div>
+  <h1>Workout Reset</h1>
+  <div class="date" id="date"></div>
+  <div class="workoutname" id="wname"></div>
+  <div class="chips" id="chips"></div>
+  <div class="row"><span class="note">Workout progress</span><strong id="prog">0%</strong></div>
+  <div class="bar"><div id="bar"></div></div>
+</header>
+
+<main>
+<section class="panel active" id="today">
+  <div class="card">
+    <div class="row"><span class="sectiontitle">Workout timer</span><span class="cap">30:00 max</span></div>
+    <div class="timer" id="timer">30:00</div>
+    <div class="timerbuttons">
+      <button class="mini" id="start">Start</button>
+      <button class="mini" id="pause">Pause</button>
+      <button class="mini" id="timerReset">Reset</button>
+    </div>
+  </div>
+  <div id="workout"></div>
+  <div class="card">
+    <button class="btn rose" id="shortBtn">😩 Not Today — give me 10 minutes</button>
+    <button class="btn" id="resetChecks">Reset checkmarks</button>
+  </div>
+</section>
+
+<section class="panel" id="schedule">
+  <div class="card">
+    <div class="sectiontitle">This week's rhythm</div>
+    <p class="note">Four training days. Recovery days are intentionally open.</p>
+    <div id="week"></div>
+  </div>
+</section>
+
+<section class="panel" id="progress">
+  <div class="card" id="weightCard">
+    <div class="row"><div class="sectiontitle">Weight tracker</div><span class="cap">Optional</span></div>
+    <p class="note">For trend awareness only. No goals or red/green judgment.</p>
+    <div class="weightrow"><input id="weight" type="number" step=".1" placeholder="Weight"><button class="mini" id="saveWeight">Save</button></div>
+    <div class="chart" id="chart"></div>
+    <div class="note" id="weightNote"></div>
+  </div>
+  <div class="card">
+    <div class="sectiontitle">Completed workouts</div>
+    <div class="workoutname" id="completed">0</div>
+    <div class="note">No streaks. This is information, not a score.</div>
+  </div>
+</section>
+
+<section class="panel settings" id="settings">
+  <div class="card">
+    <div class="sectiontitle">Your workout</div>
+    <div class="setting">
+      <div class="row"><div><b>Difficulty</b><div class="note">Move up whenever you're ready.</div></div>
+      <select id="level" style="max-width:150px"><option>Beginner</option><option>Moderate</option><option>Stronger</option><option>Challenging</option></select></div>
+    </div>
+    <div class="setting"><div class="row"><div><b>Low impact</b><div class="note">Keeps jumping out.</div></div><div class="toggle on" id="impact"></div></div></div>
+    <div class="setting"><div class="row"><div><b>Weight tracker</b><div class="note">Hide it completely anytime.</div></div><div class="toggle on" id="weightToggle"></div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="sectiontitle">Equipment</div>
+    <p class="note">Tap what you have. You always choose your own dumbbell weight.</p>
+    <div class="equip" id="equipment"></div>
+    <div class="weightrow" style="margin-top:12px"><input id="customEq" placeholder="Add other equipment"><button class="mini" id="addEq">Add</button></div>
+  </div>
+
+  <div class="card">
+    <div class="sectiontitle">Loading guidance</div>
+    <p class="note"><b>Light:</b> you could comfortably do several more reps.<br><b>Moderate:</b> the last few reps take focus with good form.<br><b>Challenging:</b> the final reps feel difficult without form breaking.</p>
+    <p class="note">These are suggestions only. Choose whatever weight feels right for you.</p>
+  </div>
+</section>
+</main>
+
+<nav class="nav">
+  <button class="active" data-p="today">Today</button>
+  <button data-p="schedule">Schedule</button>
+  <button data-p="progress">Progress</button>
+  <button data-p="settings">Settings</button>
+</nav>
+</div>
+
+<div id="modal" class="modal hidden">
+  <div class="sheet">
+    <div class="row"><strong id="modalName"></strong><button class="mini" id="closeModal">Close</button></div>
+    <div class="formpic" id="modalPic">🏋️</div>
+    <div class="formsteps" id="modalText"></div>
+  </div>
+</div>
+
+<script>
+const library={
+"Bodyweight Squat":{icon:"🧍",cue:"Sit hips back • knees track over toes",how:"Stand about hip-width. Brace your core, send your hips back and down, then drive through your whole foot to stand. Keep your knees tracking in the same direction as your toes.",swap:["Goblet Squat","Banded Squat"]},
+"Goblet Squat":{icon:"🏋️",cue:"Hold one dumbbell at chest",how:"Hold one dumbbell close to your chest. Sit down between your hips while keeping your chest tall. Push the floor away to stand.",swap:["Bodyweight Squat","Banded Squat"]},
+"Banded Squat":{icon:"⭕",cue:"Band above knees • press gently out",how:"Place a booty band above your knees. Squat while gently pressing your knees outward into the band. Keep your feet planted.",swap:["Bodyweight Squat","Goblet Squat"]},
+"Dumbbell Romanian Deadlift":{icon:"🏋️",cue:"Soft knees • hips travel backward",how:"Hold dumbbells in front of your thighs. Soften your knees and push your hips backward while keeping your back neutral. Stop when you feel your hamstrings, then squeeze your glutes to stand.",swap:["Glute Bridge","Banded Good Morning"]},
+"Glute Bridge":{icon:"🌉",cue:"Ribs down • squeeze glutes at top",how:"Lie on your back with knees bent and feet planted. Brace your core and squeeze your glutes to lift your hips. Pause, then lower with control.",swap:["Ball Bridge","Dumbbell Romanian Deadlift"]},
+"Ball Bridge":{icon:"⚪",cue:"Feet on stability ball • move slowly",how:"Lie on your back with feet supported on the large ball. Brace your core and lift your hips by squeezing your glutes. Keep the ball as still as possible.",swap:["Glute Bridge"]},
+"Reverse Lunge":{icon:"🦵",cue:"Step back • front foot stays planted",how:"Step one foot backward and lower both knees comfortably. Keep most of your pressure through the front foot, then push through it to return to standing.",swap:["Split Squat","Bodyweight Squat"]},
+"Split Squat":{icon:"🦵",cue:"Stationary stance • straight down",how:"Take a staggered stance and keep your feet planted. Lower your body straight down, then press through the front foot to rise.",swap:["Reverse Lunge","Bodyweight Squat"]},
+"One-Arm Dumbbell Row":{icon:"💪",cue:"Hinge forward • pull elbow toward hip",how:"Stand staggered and hinge forward with a flat back. Support your free hand on your thigh if helpful. Pull the dumbbell toward your hip, then lower slowly.",swap:["Band Row"]},
+"Band Row":{icon:"〰️",cue:"Pull elbows back • squeeze shoulder blades",how:"Anchor or loop the long band securely as appropriate for your band. Pull your elbows backward while keeping shoulders away from ears. Return slowly.",swap:["One-Arm Dumbbell Row"]},
+"Floor Chest Press":{icon:"🏋️",cue:"Lie on floor • elbows gently touch down",how:"Lie on your back holding dumbbells. Bend elbows about 45 degrees from your body. Press weights over your chest and lower until your upper arms gently meet the floor.",swap:["Wall Push-Up"]},
+"Wall Push-Up":{icon:"🤲",cue:"Hands on wall • body stays straight",how:"Place hands on a wall and walk your feet back. Keep your body in one line, bend your elbows to bring your chest toward the wall, then press away.",swap:["Floor Chest Press"]},
+"Shoulder Press":{icon:"🙌",cue:"Ribs stacked • press overhead",how:"Hold dumbbells near shoulder height. Brace your core and press overhead without leaning backward. Lower with control.",swap:["Band Shoulder Press"]},
+"Band Shoulder Press":{icon:"〰️",cue:"Stand on band • press overhead",how:"Stand securely on the long band and hold the ends at shoulder height. Brace your core and press overhead, then return slowly.",swap:["Shoulder Press"]},
+"Dead Bug":{icon:"🐞",cue:"Low back stays gently heavy",how:"Lie on your back with arms up and knees bent over hips. Brace your core. Slowly extend opposite arm and leg without letting your back arch, then switch.",swap:["Ball Dead Bug","Bird Dog"]},
+"Ball Dead Bug":{icon:"⚪",cue:"Press small ball between hand and knee",how:"Lie on your back and press the small ball between one hand and the opposite knee. Maintain gentle pressure while extending the free arm and leg. Switch sides.",swap:["Dead Bug"]},
+"Bird Dog":{icon:"🐦",cue:"Reach long • keep hips level",how:"Start on hands and knees. Reach opposite arm and leg away from you while keeping hips level. Return slowly and switch.",swap:["Dead Bug"]},
+"Banded Lateral Walk":{icon:"↔️",cue:"Small steps • toes forward",how:"Place a booty band above the knees or at the ankles. Soften your knees and take controlled side steps while keeping tension in the band.",swap:["Standing Band Abduction"]},
+"Standing Band Abduction":{icon:"🦵",cue:"Stand tall • move leg out from hip",how:"With a booty band around your legs, stand tall and move one leg gently out to the side without leaning. Return slowly.",swap:["Banded Lateral Walk"]},
+"Stability Ball Hamstring Curl":{icon:"⚪",cue:"Heels on ball • hips lifted",how:"Lie on your back with heels on the large ball. Lift hips, bend your knees to roll the ball toward you, then extend slowly.",swap:["Glute Bridge"]},
+"Bicep Curl":{icon:"💪",cue:"Elbows stay near ribs",how:"Stand tall with dumbbells by your sides. Bend your elbows to curl the weights without swinging, then lower slowly.",swap:["Band Bicep Curl"]},
+"Band Bicep Curl":{icon:"〰️",cue:"Stand on band • elbows stay tucked",how:"Stand securely on the band. Keep your elbows near your ribs while curling your hands upward, then lower with control.",swap:["Bicep Curl"]},
+"Tricep Kickback":{icon:"💪",cue:"Hinge • upper arms stay still",how:"Hinge forward, bring elbows alongside your ribs, then straighten your arms behind you. Bend elbows slowly to return.",swap:["Overhead Tricep Extension"]},
+"Overhead Tricep Extension":{icon:"🙆",cue:"One dumbbell • elbows point forward",how:"Hold one dumbbell overhead with both hands. Bend your elbows to lower it behind your head, then straighten your arms without excessively flaring the elbows.",swap:["Tricep Kickback"]},
+"Standing March":{icon:"🚶",cue:"Tall posture • controlled knees",how:"Stand tall and alternately lift one knee, then the other. Keep the movement controlled and your core gently braced.",swap:["Side Step"]},
+"Side Step":{icon:"↔️",cue:"Easy side-to-side movement",how:"Step side to side at a comfortable pace. Keep knees soft and breathe naturally.",swap:["Standing March"]},
+"Cat Cow":{icon:"🐈",cue:"Move slowly with your breath",how:"On hands and knees, gently alternate between rounding your spine and opening your chest. Stay in a comfortable range.",swap:["Child's Pose"]},
+"Child's Pose":{icon:"🧘",cue:"Breathe into your back and sides",how:"From hands and knees, send hips toward heels and reach arms forward. Use a comfortable knee position and breathe slowly.",swap:["Cat Cow"]},
+"Down Dog Pedal":{icon:"🧘",cue:"Soft knees • alternate heels",how:"From hands and knees, lift hips up and back. Keep your knees soft and alternately bend one knee while lengthening the opposite heel.",swap:["Cat Cow"]},
+"Pilates Toe Tap":{icon:"🩰",cue:"Core braced • alternate taps",how:"Lie on your back with knees over hips. Keeping your trunk steady, lower one foot to tap the floor and return. Alternate sides.",swap:["Dead Bug"]},
+"Small Ball Inner-Thigh Squeeze":{icon:"⚪",cue:"Gentle squeeze • steady breathing",how:"Place the small ball between your knees while seated or lying down. Gently squeeze, hold briefly, then release without losing control.",swap:["Glute Bridge"]},
+"Wall Sit":{icon:"🧱",cue:"Back supported • comfortable depth",how:"Lean against a wall and slide down to a comfortable squat depth. Keep feet planted and hold while breathing steadily.",swap:["Bodyweight Squat"]}
+};
+
+const rotations=[
+[
+{name:"Lower Body + Glutes",type:"Strength",sections:[
+["Warm-up · 4 min",[["Standing March","60 sec"],["Bodyweight Squat","10 reps"],["Side Step","60 sec"]]],
+["Strength · 20 min",[["Goblet Squat","3 × 10"],["Dumbbell Romanian Deadlift","3 × 10"],["Reverse Lunge","2 × 8/side"],["Banded Lateral Walk","2 × 10/side"],["Glute Bridge","2 × 12"]]],
+["Cooldown · 6 min",[["Child's Pose","60 sec"],["Cat Cow","6 slow reps"]]]]},
+{name:"Upper Body + Core",type:"Strength",sections:[
+["Warm-up · 4 min",[["Standing March","60 sec"],["Bird Dog","6/side"]]],
+["Strength · 21 min",[["One-Arm Dumbbell Row","3 × 10/side"],["Floor Chest Press","3 × 10"],["Shoulder Press","2 × 10"],["Bicep Curl","2 × 10"],["Tricep Kickback","2 × 10"],["Dead Bug","2 × 8/side"]]],
+["Cooldown · 5 min",[["Child's Pose","60 sec"],["Cat Cow","6 slow reps"]]]]},
+{name:"Full Body",type:"Strength",sections:[
+["Warm-up · 4 min",[["Standing March","60 sec"],["Bodyweight Squat","10 reps"],["Bird Dog","6/side"]]],
+["Full Body · 21 min",[["Goblet Squat","3 × 10"],["One-Arm Dumbbell Row","3 × 10/side"],["Dumbbell Romanian Deadlift","3 × 10"],["Floor Chest Press","2 × 10"],["Dead Bug","2 × 8/side"]]],
+["Cooldown · 5 min",[["Child's Pose","60 sec"],["Cat Cow","6 slow reps"]]]]},
+{name:"Pilates + Core",type:"Pilates",sections:[
+["Warm-up · 4 min",[["Cat Cow","6 slow reps"],["Standing March","60 sec"]]],
+["Pilates · 21 min",[["Pilates Toe Tap","3 × 8/side"],["Small Ball Inner-Thigh Squeeze","3 × 12"],["Glute Bridge","3 × 12"],["Bird Dog","2 × 8/side"],["Standing Band Abduction","2 × 10/side"]]],
+["Mobility · 5 min",[["Child's Pose","60 sec"],["Cat Cow","6 slow reps"]]]]}
+],
+[
+{name:"Lower Body",type:"Strength",sections:[
+["Warm-up · 4 min",[["Standing March","60 sec"],["Side Step","60 sec"]]],
+["Strength · 20 min",[["Banded Squat","3 × 12"],["Dumbbell Romanian Deadlift","3 × 10"],["Split Squat","2 × 8/side"],["Stability Ball Hamstring Curl","2 × 10"],["Standing Band Abduction","2 × 10/side"]]],
+["Cooldown · 6 min",[["Child's Pose","60 sec"],["Cat Cow","6 slow reps"]]]]},
+{name:"Yoga + Core",type:"Yoga",sections:[
+["Flow · 20 min",[["Cat Cow","8 slow reps"],["Child's Pose","60 sec"],["Down Dog Pedal","60 sec"],["Bird Dog","2 × 8/side"],["Standing March","60 sec"]]],
+["Core · 6 min",[["Ball Dead Bug","2 × 8/side"],["Pilates Toe Tap","2 × 8/side"]]],
+["Breathe · 4 min",[["Child's Pose","2 min"]]]]},
+{name:"Upper Body",type:"Strength",sections:[
+["Warm-up · 4 min",[["Standing March","60 sec"],["Bird Dog","6/side"]]],
+["Strength · 21 min",[["Band Row","3 × 12"],["Floor Chest Press","3 × 10"],["Band Shoulder Press","2 × 10"],["Band Bicep Curl","2 × 12"],["Overhead Tricep Extension","2 × 10"],["Dead Bug","2 × 8/side"]]],
+["Cooldown · 5 min",[["Child's Pose","60 sec"]]]]},
+{name:"Full Body",type:"Strength",sections:[
+["Warm-up · 4 min",[["Standing March","60 sec"],["Bodyweight Squat","10 reps"]]],
+["Full Body · 21 min",[["Goblet Squat","3 × 10"],["One-Arm Dumbbell Row","3 × 10/side"],["Glute Bridge","3 × 12"],["Shoulder Press","2 × 10"],["Banded Lateral Walk","2 × 10/side"],["Dead Bug","2 × 8/side"]]],
+["Cooldown · 5 min",[["Cat Cow","6 slow reps"],["Child's Pose","60 sec"]]]]}
+],
+[
+{name:"Full Body",type:"Strength",sections:[
+["Warm-up · 4 min",[["Standing March","60 sec"],["Side Step","60 sec"]]],
+["Circuit · 21 min",[["Banded Squat","3 × 12"],["Band Row","3 × 12"],["Dumbbell Romanian Deadlift","3 × 10"],["Floor Chest Press","2 × 10"],["Ball Dead Bug","2 × 8/side"]]],
+["Cooldown · 5 min",[["Child's Pose","60 sec"]]]]},
+{name:"Pilates + Glutes",type:"Pilates",sections:[
+["Warm-up · 4 min",[["Cat Cow","6 slow reps"],["Standing March","60 sec"]]],
+["Pilates · 21 min",[["Small Ball Inner-Thigh Squeeze","3 × 12"],["Glute Bridge","3 × 12"],["Pilates Toe Tap","3 × 8/side"],["Standing Band Abduction","3 × 10/side"],["Bird Dog","2 × 8/side"]]],
+["Cooldown · 5 min",[["Child's Pose","60 sec"]]]]},
+{name:"Upper Body",type:"Strength",sections:[
+["Warm-up · 4 min",[["Standing March","60 sec"],["Bird Dog","6/side"]]],
+["Strength · 21 min",[["One-Arm Dumbbell Row","3 × 10/side"],["Wall Push-Up","3 × 8-12"],["Shoulder Press","2 × 10"],["Bicep Curl","2 × 10"],["Tricep Kickback","2 × 10"],["Dead Bug","2 × 8/side"]]],
+["Cooldown · 5 min",[["Cat Cow","6 slow reps"]]]]},
+{name:"Lower Body + Mobility",type:"Strength",sections:[
+["Warm-up · 4 min",[["Standing March","60 sec"],["Side Step","60 sec"]]],
+["Strength · 18 min",[["Goblet Squat","3 × 10"],["Dumbbell Romanian Deadlift","3 × 10"],["Reverse Lunge","2 × 8/side"],["Wall Sit","2 × 30 sec"],["Banded Lateral Walk","2 × 10/side"]]],
+["Mobility · 8 min",[["Cat Cow","8 slow reps"],["Child's Pose","90 sec"],["Down Dog Pedal","60 sec"]]]]}
+]
+];
+
+let prefs=JSON.parse(localStorage.getItem("wr_prefs")||'{"level":"Beginner","lowImpact":true,"weight":true,"equipment":["Dumbbells","Booty bands","Long bands","Small ball","Stability ball","Bodyweight"],"custom":[]}');
+const now=new Date(), dateKey=now.toLocaleDateString("en-CA"), stateKey="wr_"+dateKey;
+let state=JSON.parse(localStorage.getItem(stateKey)||'{"done":{},"counted":false}');
+const monIndex=(now.getDay()+6)%7;
+const trainingDays=[0,1,3,5];
+const jan1=new Date(now.getFullYear(),0,1);
+const weekNum=Math.floor((now-jan1)/(7*86400000));
+const rotation=weekNum%rotations.length;
+let slot=trainingDays.indexOf(monIndex);
+let workout=slot>=0?rotations[rotation][slot]:{name:"Recovery Day",type:"Recovery",sections:[["Optional movement",[["Standing March","5–10 min easy"],["Cat Cow","6 slow reps"],["Child's Pose","60 sec"]]]]};
+
+document.getElementById("date").textContent=now.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
+document.getElementById("wname").textContent=workout.name;
+document.getElementById("chips").innerHTML=`<span class="chip">${workout.type}</span><span class="chip">${slot>=0?"30 min":"Optional"}</span><span class="chip">${prefs.level}</span><span class="chip">${prefs.lowImpact?"Low impact":"Standard impact"}</span>`;
+
+function renderWorkout(short=false){
+ const host=document.getElementById("workout");host.innerHTML="";
+ let sections=workout.sections;
+ if(short && slot>=0){
+   const all=workout.sections.flatMap(s=>s[1]).slice(0,4);
+   sections=[["10-minute minimum", all.map(x=>[x[0],x[1].replace("3 × ","1 × ").replace("2 × ","1 × ")])]];
+ }
+ sections.forEach((sec,si)=>{
+   const card=document.createElement("div");card.className="card";
+   card.innerHTML=`<div class="row"><span class="sectiontitle">${sec[0]}</span><span class="cap">${short?"just move":"at your pace"}</span></div>`;
+   sec[1].forEach((x,ei)=>{
+      const key=(short?"s":"n")+"_"+si+"_"+ei;
+      const ex=library[x[0]] || {icon:"🏃",cue:"Move with control",how:"Use a comfortable range of motion.",swap:[]};
+      const el=document.createElement("div");el.className="exercise";
+      el.innerHTML=`<div class="exhead"><div class="pic">${ex.icon}</div><div><div class="exname">${x[0]}</div><div class="dose">${x[1]}</div><div class="cue">${ex.cue}</div></div></div>
+      <div class="actions"><button class="mini form">How to</button><button class="mini swap">Swap</button><button class="mini check ${state.done[key]?"done":""}">${state.done[key]?"✓ Done":"Mark done"}</button></div>`;
+      el.querySelector(".form").onclick=()=>showForm(x[0]);
+      el.querySelector(".swap").onclick=()=>swapExercise(el,x[0]);
+      el.querySelector(".check").onclick=(e)=>{state.done[key]=!state.done[key];localStorage.setItem(stateKey,JSON.stringify(state));e.target.classList.toggle("done",state.done[key]);e.target.textContent=state.done[key]?"✓ Done":"Mark done";updateProgress();};
+      card.appendChild(el);
+   });
+   host.appendChild(card);
+ });
+ updateProgress();
+}
+function updateProgress(){
+  const total=document.querySelectorAll("#workout .check").length;
+  const done=[...document.querySelectorAll("#workout .check.done")].length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById("prog").textContent=pct+"%";
+  document.getElementById("bar").style.width=pct+"%";
+  if(pct===100 && slot>=0 && !state.counted){
+    const c=+(localStorage.getItem("wr_completed")||0)+1;
+    localStorage.setItem("wr_completed",c);
+    state.counted=true;localStorage.setItem(stateKey,JSON.stringify(state));
+    document.getElementById("completed").textContent=c;
+  }
+}
+function showForm(name){
+ const ex=library[name];
+ document.getElementById("modalName").textContent=name;
+ document.getElementById("modalPic").textContent=ex.icon;
+ document.getElementById("modalText").textContent=ex.how;
+ document.getElementById("modal").classList.remove("hidden");
+}
+function swapExercise(el,name){
+ const opts=(library[name]?.swap)||[];
+ if(!opts.length){alert("No swap saved for this exercise yet.");return;}
+ const next=opts[0], ne=library[next];
+ el.querySelector(".pic").textContent=ne.icon;
+ el.querySelector(".exname").textContent=next;
+ el.querySelector(".cue").textContent=ne.cue;
+ el.querySelector(".form").onclick=()=>showForm(next);
+}
+document.getElementById("closeModal").onclick=()=>document.getElementById("modal").classList.add("hidden");
+renderWorkout();
+
+document.getElementById("shortBtn").onclick=()=>{state.done={};localStorage.setItem(stateKey,JSON.stringify(state));renderWorkout(true);};
+document.getElementById("resetChecks").onclick=()=>{if(confirm("Reset today's checkmarks?")){state.done={};localStorage.setItem(stateKey,JSON.stringify(state));renderWorkout(false);}};
+
+let seconds=1800,timerInt=null;
+function drawTimer(){const m=Math.floor(seconds/60),s=seconds%60;document.getElementById("timer").textContent=`${m}:${String(s).padStart(2,"0")}`;}
+document.getElementById("start").onclick=()=>{if(timerInt)return;timerInt=setInterval(()=>{if(seconds>0){seconds--;drawTimer();}else{clearInterval(timerInt);timerInt=null;}},1000);};
+document.getElementById("pause").onclick=()=>{clearInterval(timerInt);timerInt=null;};
+document.getElementById("timerReset").onclick=()=>{clearInterval(timerInt);timerInt=null;seconds=1800;drawTimer();};
+
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+ document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+ b.classList.add("active");document.getElementById(b.dataset.p).classList.add("active");
+});
+
+const weekHost=document.getElementById("week");
+["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].forEach((name,i)=>{
+ const idx=trainingDays.indexOf(i), w=idx>=0?rotations[rotation][idx]:null;
+ const el=document.createElement("div");el.className="day"+(i===monIndex?" today":"");
+ el.innerHTML=`<div class="cap">${name}${i===monIndex?" • today":""}</div><b>${w?w.name:"Recovery / Rest"}</b><div class="note">${w?"30 minutes • "+w.type:"Optional walk, mobility, or complete rest"}</div>`;
+ weekHost.appendChild(el);
+});
+
+document.getElementById("completed").textContent=localStorage.getItem("wr_completed")||0;
+
+let weights=JSON.parse(localStorage.getItem("wr_weights")||"[]");
+function renderWeights(){
+ const ch=document.getElementById("chart");ch.innerHTML="";
+ if(!weights.length){ch.innerHTML='<span class="note">No entries yet.</span>';document.getElementById("weightNote").textContent="";return;}
+ const recent=weights.slice(-12), vals=recent.map(x=>x.v), min=Math.min(...vals), max=Math.max(...vals), range=max-min||1;
+ recent.forEach(x=>{const p=document.createElement("div");p.className="point";p.style.height=(35+(x.v-min)/range*100)+"px";p.title=x.d+": "+x.v;p.onclick=()=>alert(x.d+": "+x.v);ch.appendChild(p);});
+ document.getElementById("weightNote").textContent=`Latest: ${weights[weights.length-1].v}`;
+}
+document.getElementById("saveWeight").onclick=()=>{const v=parseFloat(document.getElementById("weight").value);if(!v)return;weights.push({d:dateKey,v});localStorage.setItem("wr_weights",JSON.stringify(weights));document.getElementById("weight").value="";renderWeights();};
+renderWeights();
+
+document.getElementById("level").value=prefs.level;
+document.getElementById("level").onchange=e=>{prefs.level=e.target.value;savePrefs();location.reload();};
+
+function setToggle(id,on){document.getElementById(id).classList.toggle("on",on);}
+setToggle("impact",prefs.lowImpact);setToggle("weightToggle",prefs.weight);
+document.getElementById("weightCard").classList.toggle("hidden",!prefs.weight);
+
+document.getElementById("impact").onclick=()=>{prefs.lowImpact=!prefs.lowImpact;savePrefs();setToggle("impact",prefs.lowImpact);};
+document.getElementById("weightToggle").onclick=()=>{prefs.weight=!prefs.weight;savePrefs();setToggle("weightToggle",prefs.weight);document.getElementById("weightCard").classList.toggle("hidden",!prefs.weight);};
+
+const defaults=["Dumbbells","Booty bands","Long bands","Small ball","Stability ball","Bodyweight"];
+function renderEq(){
+ const h=document.getElementById("equipment");h.innerHTML="";
+ [...defaults,...prefs.custom].forEach(e=>{const x=document.createElement("span");x.className="eq "+(prefs.equipment.includes(e)?"on":"");x.textContent=e;x.onclick=()=>{prefs.equipment.includes(e)?prefs.equipment=prefs.equipment.filter(q=>q!==e):prefs.equipment.push(e);savePrefs();renderEq();};h.appendChild(x);});
+}
+renderEq();
+document.getElementById("addEq").onclick=()=>{const i=document.getElementById("customEq"),v=i.value.trim();if(!v)return;if(!prefs.custom.includes(v))prefs.custom.push(v);if(!prefs.equipment.includes(v))prefs.equipment.push(v);i.value="";savePrefs();renderEq();};
+function savePrefs(){localStorage.setItem("wr_prefs",JSON.stringify(prefs));}
+
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));}
+</script>
+</body>
+</html>
