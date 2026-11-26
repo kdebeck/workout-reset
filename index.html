@@ -53,10 +53,11 @@ h1{font-size:34px;margin:7px 0 5px}.date,.note{color:var(--muted);font-size:13px
 <body>
 <div class="app">
 <header class="hero">
-  <div class="kicker">30 minutes • today's plan is ready</div>
+  <div class="kicker" id="modeKicker"></div>
   <h1>Workout Reset</h1>
+  <div class="row" style="margin:12px 0;padding:10px 12px;background:var(--sage2);border-radius:14px"><div><b>Work Mode</b><div class="note" id="modeNote"></div></div><button type="button" class="toggle" id="workMode" role="switch" aria-label="Work Mode" aria-checked="false" style="border:0;cursor:pointer"></button></div>
   <div class="date" id="date"></div>
-  <div class="workoutname" id="wname"></div>
+  <div id="workPicker" class="hidden" style="margin:12px 0"><label for="workSlot">Choose your workout</label><select id="workSlot" style="width:100%;padding:10px;margin-top:5px;border-radius:10px"></select></div><div class="workoutname" id="wname"></div>
   <div class="chips" id="chips"></div>
   <div class="row"><span class="note">Workout progress</span><strong id="prog">0%</strong></div>
   <div class="bar"><div id="bar"></div></div>
@@ -65,7 +66,7 @@ h1{font-size:34px;margin:7px 0 5px}.date,.note{color:var(--muted);font-size:13px
 <main>
 <section class="panel active" id="today">
   <div class="card">
-    <div class="row"><span class="sectiontitle">Workout timer</span><span class="cap">30:00 max</span></div>
+    <div class="row"><span class="sectiontitle">Workout timer</span><span class="cap" id="timerCap">30:00 max</span></div>
     <div class="timer" id="timer">30:00</div>
     <div class="timerbuttons">
       <button class="mini" id="start">Start</button>
@@ -83,7 +84,7 @@ h1{font-size:34px;margin:7px 0 5px}.date,.note{color:var(--muted);font-size:13px
 <section class="panel" id="schedule">
   <div class="card">
     <div class="sectiontitle">This week's rhythm</div>
-    <p class="note">Four training days. Recovery days are intentionally open.</p>
+    <p class="note" id="weekNote">Four training days. Recovery days are intentionally open.</p>
     <div id="week"></div>
   </div>
 </section>
@@ -239,25 +240,52 @@ const rotations=[
 ];
 
 let prefs=JSON.parse(localStorage.getItem("wr_prefs")||'{"level":"Beginner","lowImpact":true,"weight":true,"equipment":["Dumbbells","Booty bands","Long bands","Small ball","Stability ball","Bodyweight"],"custom":[]}');
-const now=new Date(), dateKey=now.toLocaleDateString("en-CA"), stateKey="wr_"+dateKey;
+const workMode=prefs.workMode===true;
+const duration=workMode?20:30;
+const workPlans=[
+ {name:"Upper Body A",type:"Strength",sections:[["Warm-up · 2 min",[["Standing March","1 min"],["Arm Circles","1 min"]]],["Strength · 16 min",[["One-Arm Dumbbell Row","2 × 10/side"],["Wall Push-Up","2 × 10"],["Shoulder Press","2 × 10"],["Bicep Curl","2 × 12"]]],["Cool-down · 2 min",[["Standing Upper Stretch","2 min"]]]]},
+ {name:"Lower Body A",type:"Strength",sections:[["Warm-up · 2 min",[["Standing March","1 min"],["Bodyweight Squat","1 min easy"]]],["Strength · 16 min",[["Goblet Squat","2 × 10"],["Dumbbell Romanian Deadlift","2 × 10"],["Reverse Lunge","2 × 8/side"],["Standing Calf Raise","2 × 12"]]],["Cool-down · 2 min",[["Standing Lower Stretch","2 min"]]]]},
+ {name:"Upper Body B",type:"Strength",sections:[["Warm-up · 2 min",[["Standing March","1 min"],["Arm Circles","1 min"]]],["Strength · 16 min",[["One-Arm Dumbbell Row","2 × 10/side"],["Wall Push-Up","2 × 12"],["Lateral Raise","2 × 10"],["Tricep Kickback","2 × 12"]]],["Cool-down · 2 min",[["Standing Upper Stretch","2 min"]]]]},
+ {name:"Lower Body B",type:"Strength",sections:[["Warm-up · 2 min",[["Standing March","1 min"],["Side Step","1 min"]]],["Strength · 16 min",[["Split Squat","2 × 8/side"],["Dumbbell Romanian Deadlift","2 × 10"],["Standing Side Leg Raise","2 × 10/side"],["Wall Sit","2 × 30 sec"]]],["Cool-down · 2 min",[["Standing Lower Stretch","2 min"]]]]}
+];
+Object.assign(library,{
+ "Standing Side Leg Raise":{icon:"🦵",cue:"Stand tall • move slowly",how:"Stand upright, using a wall for balance if needed. Lift one leg sideways without leaning, then lower slowly.",swap:["Standing Calf Raise"]},
+ "Arm Circles":{icon:"🙆",cue:"Small to larger circles",how:"Stand tall and gently circle your arms forward and backward.",swap:[]},
+ "Standing Upper Stretch":{icon:"🙆",cue:"Gentle chest and shoulder stretch",how:"Gently stretch each arm across your chest, then open your chest with hands behind you. Breathe normally.",swap:[]},
+ "Standing Lower Stretch":{icon:"🦵",cue:"Gentle calf and thigh stretches",how:"Use a wall for balance. Stretch each calf and thigh gently without bouncing.",swap:[]},
+ "Standing Calf Raise":{icon:"🦵",cue:"Lift heels slowly",how:"Stand near a wall for balance, rise onto your toes, then lower slowly.",swap:[]},
+ "Lateral Raise":{icon:"💪",cue:"Soft elbows • lift to shoulder height",how:"Hold light dumbbells at your sides and raise arms out to shoulder height, then lower slowly.",swap:["Shoulder Press"]}
+});
+const now=new Date(), dateKey=now.toLocaleDateString("en-CA");
+const workSlot=Math.max(0,Math.min(3,Number(prefs.workSlot)||0));
+const stateKey=workMode?"wr_work_"+dateKey+"_"+workSlot:"wr_"+dateKey;
 let state=JSON.parse(localStorage.getItem(stateKey)||'{"done":{},"counted":false}');
 const monIndex=(now.getDay()+6)%7;
 const trainingDays=[0,1,3,5];
 const jan1=new Date(now.getFullYear(),0,1);
 const weekNum=Math.floor((now-jan1)/(7*86400000));
 const rotation=weekNum%rotations.length;
-let slot=trainingDays.indexOf(monIndex);
-let workout=slot>=0?rotations[rotation][slot]:{name:"Recovery Day",type:"Recovery",sections:[["Optional movement",[["Standing March","5–10 min easy"],["Cat Cow","6 slow reps"],["Child's Pose","60 sec"]]]]};
+let slot=workMode?workSlot:trainingDays.indexOf(monIndex);
+const activePlan=workMode?workPlans:rotations[rotation];
+let workout=slot>=0?activePlan[slot]:{name:"Recovery Day",type:"Recovery",sections:[["Optional movement",[["Standing March","5–10 min easy"],["Cat Cow","6 slow reps"],["Child's Pose","60 sec"]]]]};
 
+document.getElementById("modeKicker").textContent=workMode?"20 minutes • choose your workout":duration+" minutes • today's plan is ready";
+if(workMode){const picker=document.getElementById("workSlot");document.getElementById("workPicker").classList.remove("hidden");workPlans.forEach((w,i)=>picker.add(new Option(`Workout ${i+1} — ${w.name}`,i)));picker.value=String(slot);picker.onchange=()=>{prefs.workSlot=Number(picker.value);savePrefs();location.reload();};document.getElementById("weekNote").textContent="Four workouts, in order. Choose any days that work for you.";}
+document.getElementById("modeNote").textContent=workMode?"20 min · upper / lower":"Original routine · 30 min";
+const modeButton=document.getElementById("workMode");
+modeButton.classList.toggle("on",workMode);modeButton.setAttribute("aria-checked",String(workMode));
+modeButton.onclick=()=>{prefs.workMode=!workMode;savePrefs();location.reload();};
+document.getElementById("timerCap").textContent=duration+":00 max";
+if(workMode && slot<0)workout={name:"Recovery Day",type:"Recovery",sections:[["Optional movement",[["Standing March","5–10 min easy"],["Standing Upper Stretch","2 min"],["Standing Lower Stretch","2 min"]]]]};
 document.getElementById("date").textContent=now.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
 document.getElementById("wname").textContent=workout.name;
-document.getElementById("chips").innerHTML=`<span class="chip">${workout.type}</span><span class="chip">${slot>=0?"30 min":"Optional"}</span><span class="chip">${prefs.level}</span><span class="chip">${prefs.lowImpact?"Low impact":"Standard impact"}</span>`;
+document.getElementById("chips").innerHTML=`<span class="chip">${workout.type}</span><span class="chip">${slot>=0?duration+" min":"Optional"}</span><span class="chip">${prefs.level}</span><span class="chip">${(workMode||prefs.lowImpact)?"Low impact":"Standard impact"}</span>`;
 
 function renderWorkout(short=false){
  const host=document.getElementById("workout");host.innerHTML="";
  let sections=workout.sections;
  if(short && slot>=0){
-   const all=workout.sections.flatMap(s=>s[1]).slice(0,4);
+   const all=(workMode?workout.sections[1][1]:workout.sections.flatMap(s=>s[1])).slice(0,4);
    sections=[["10-minute minimum", all.map(x=>[x[0],x[1].replace("3 × ","1 × ").replace("2 × ","1 × ")])]];
  }
  sections.forEach((sec,si)=>{
@@ -301,23 +329,28 @@ function showForm(name){
 function swapExercise(el,name){
  const opts=(library[name]?.swap)||[];
  if(!opts.length){alert("No swap saved for this exercise yet.");return;}
- const next=opts[0], ne=library[next];
+ const allowed=new Set(workPlans.flatMap(w=>w.sections.flatMap(sec=>sec[1].map(x=>x[0]))).concat(["Overhead Tricep Extension"]));
+ const next=opts.find(o=>library[o] && (!workMode || allowed.has(o)));
+ if(!next){alert("No suitable swap saved for this exercise.");return;}
+ const ne=library[next];
  el.querySelector(".pic").textContent=ne.icon;
  el.querySelector(".exname").textContent=next;
  el.querySelector(".cue").textContent=ne.cue;
  el.querySelector(".form").onclick=()=>showForm(next);
+ el.querySelector(".swap").onclick=()=>swapExercise(el,next);
 }
 document.getElementById("closeModal").onclick=()=>document.getElementById("modal").classList.add("hidden");
 renderWorkout();
 
-document.getElementById("shortBtn").onclick=()=>{state.done={};localStorage.setItem(stateKey,JSON.stringify(state));renderWorkout(true);};
+document.getElementById("shortBtn").onclick=()=>{state.done={};localStorage.setItem(stateKey,JSON.stringify(state));renderWorkout(true);clearInterval(timerInt);timerInt=null;seconds=600;drawTimer();};
 document.getElementById("resetChecks").onclick=()=>{if(confirm("Reset today's checkmarks?")){state.done={};localStorage.setItem(stateKey,JSON.stringify(state));renderWorkout(false);}};
 
-let seconds=1800,timerInt=null;
+let seconds=duration*60,timerInt=null;
 function drawTimer(){const m=Math.floor(seconds/60),s=seconds%60;document.getElementById("timer").textContent=`${m}:${String(s).padStart(2,"0")}`;}
+drawTimer();
 document.getElementById("start").onclick=()=>{if(timerInt)return;timerInt=setInterval(()=>{if(seconds>0){seconds--;drawTimer();}else{clearInterval(timerInt);timerInt=null;}},1000);};
 document.getElementById("pause").onclick=()=>{clearInterval(timerInt);timerInt=null;};
-document.getElementById("timerReset").onclick=()=>{clearInterval(timerInt);timerInt=null;seconds=1800;drawTimer();};
+document.getElementById("timerReset").onclick=()=>{clearInterval(timerInt);timerInt=null;seconds=duration*60;drawTimer();};
 
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
@@ -326,10 +359,10 @@ document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{
 });
 
 const weekHost=document.getElementById("week");
-["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].forEach((name,i)=>{
- const idx=trainingDays.indexOf(i), w=idx>=0?rotations[rotation][idx]:null;
+if(workMode){workPlans.forEach((w,i)=>{const el=document.createElement("div");el.className="day"+(i===slot?" today":"");el.innerHTML=`<div class="cap">Workout ${i+1}</div><b>${w.name}</b><div class="note">20 minutes • ${i===slot?"Selected":"Strength"}</div><button class="mini">Choose workout</button>`;el.querySelector("button").onclick=()=>{prefs.workSlot=i;savePrefs();location.reload();};weekHost.appendChild(el);});}else ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].forEach((name,i)=>{
+ const idx=trainingDays.indexOf(i), w=idx>=0?activePlan[idx]:null;
  const el=document.createElement("div");el.className="day"+(i===monIndex?" today":"");
- el.innerHTML=`<div class="cap">${name}${i===monIndex?" • today":""}</div><b>${w?w.name:"Recovery / Rest"}</b><div class="note">${w?"30 minutes • "+w.type:"Optional walk, mobility, or complete rest"}</div>`;
+ el.innerHTML=`<div class="cap">${name}${i===monIndex?" • today":""}</div><b>${w?w.name:"Recovery / Rest"}</b><div class="note">${w?duration+" minutes • "+w.type:"Optional walk, mobility, or complete rest"}</div>`;
  weekHost.appendChild(el);
 });
 
@@ -359,9 +392,10 @@ document.getElementById("weightToggle").onclick=()=>{prefs.weight=!prefs.weight;
 const defaults=["Dumbbells","Booty bands","Long bands","Small ball","Stability ball","Bodyweight"];
 function renderEq(){
  const h=document.getElementById("equipment");h.innerHTML="";
- [...defaults,...prefs.custom].forEach(e=>{const x=document.createElement("span");x.className="eq "+(prefs.equipment.includes(e)?"on":"");x.textContent=e;x.onclick=()=>{prefs.equipment.includes(e)?prefs.equipment=prefs.equipment.filter(q=>q!==e):prefs.equipment.push(e);savePrefs();renderEq();};h.appendChild(x);});
+ (workMode?["Dumbbells","Bodyweight"]:[...defaults,...prefs.custom]).forEach(e=>{const x=document.createElement("span");x.className="eq "+((workMode||prefs.equipment.includes(e))?"on":"");x.textContent=e;x.onclick=()=>{if(workMode)return;prefs.equipment.includes(e)?prefs.equipment=prefs.equipment.filter(q=>q!==e):prefs.equipment.push(e);savePrefs();renderEq();};h.appendChild(x);});
 }
 renderEq();
+if(workMode){document.getElementById("customEq").disabled=true;document.getElementById("addEq").disabled=true;}
 document.getElementById("addEq").onclick=()=>{const i=document.getElementById("customEq"),v=i.value.trim();if(!v)return;if(!prefs.custom.includes(v))prefs.custom.push(v);if(!prefs.equipment.includes(v))prefs.equipment.push(v);i.value="";savePrefs();renderEq();};
 function savePrefs(){localStorage.setItem("wr_prefs",JSON.stringify(prefs));}
 

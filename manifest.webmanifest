@@ -1,7 +1,7 @@
 {
   "name": "Workout Reset",
   "short_name": "Workout Reset",
-  "description": "Simple 30-minute daily workouts with low-impact options, yoga, Pilates, and progress tracking.",
+  "description": "Original 30-minute routine or 20-minute upper/lower Work Mode.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
